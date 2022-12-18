@@ -1,6 +1,6 @@
 mod libs;
 
 fn main() {
-    let ans = libs::solve_day2_2();
+    let ans = libs::solve_day3();
     println!("ans: {}", ans);
 }
