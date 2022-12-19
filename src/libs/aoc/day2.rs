@@ -4,9 +4,6 @@ pub fn solve() -> u64 {
     let input = super::utils::read("./src/input/day2.txt");
     let mut ans = 0;
     for v in input {
-        if v.len() == 0 {
-            break;
-        }
         let s: Vec<_> = v.split(' ').collect();
         let op = ShapeKind::from_str(s[0]).unwrap();
         let me = ShapeKind::from_str(s[1]).unwrap();
@@ -19,9 +16,6 @@ pub fn solve_2() -> u64 {
     let input = super::utils::read("./src/input/day2.txt");
     let mut ans = 0;
     for v in input {
-        if v.len() == 0 {
-            break;
-        }
         let s: Vec<_> = v.split(' ').collect();
         let op = ShapeKind::from_str(s[0]).unwrap();
         if let Some(me) = op.suggest(s[1]) {
