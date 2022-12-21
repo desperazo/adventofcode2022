@@ -23,3 +23,11 @@ pub fn solve_day3() -> u64 {
 pub fn solve_day3_2() -> u64 {
     aoc::day3::solve_2()
 }
+
+pub fn solve_day4() -> u64 {
+    aoc::day4::solve()
+}
+
+pub fn solve_day4_2() -> u64 {
+    aoc::day4::solve_2()
+}
