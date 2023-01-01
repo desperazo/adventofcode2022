@@ -31,3 +31,7 @@ pub fn solve_day4() -> u64 {
 pub fn solve_day4_2() -> u64 {
     aoc::day4::solve_2()
 }
+
+pub fn solve_day5() -> String {
+    aoc::day5::solve()
+}
