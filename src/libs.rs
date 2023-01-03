@@ -40,6 +40,6 @@ pub fn solve_day5_2() -> String {
     aoc::day5::solve_2()
 }
 
-pub fn solve_day6() -> usize {
-    aoc::day6::solve()
+pub fn solve_day6(size: usize) -> usize {
+    aoc::day6::solve(size)
 }
