@@ -43,3 +43,10 @@ pub fn solve_day5_2() -> String {
 pub fn solve_day6(size: usize) -> usize {
     aoc::day6::solve(size)
 }
+
+pub fn solve_day7() -> usize {
+    aoc::day7::solve()
+}
+
+#[cfg(test)]
+mod tests;
