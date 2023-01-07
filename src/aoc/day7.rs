@@ -2,11 +2,46 @@ use regex::Regex;
 use std::{cell::RefCell, collections::VecDeque, rc::Rc};
 
 pub fn solve() -> usize {
+    let root = build_dir();
+    let mut queue = VecDeque::new();
+    queue.push_back(root);
+    let mut ans = 0;
+    while queue.len() > 0 {
+        let temp = queue.pop_front().unwrap();
+        if temp.borrow().size <= 100000 {
+            ans += temp.borrow().size;
+        }
+        for v in temp.borrow().children.iter() {
+            queue.push_back(Rc::clone(&v));
+        }
+    }
+    ans
+}
+
+pub fn solve_2() -> usize {
+    let root = build_dir();
+    let unused = 70000000 - root.borrow().size;
+    let expected = 30000000 - unused;
+    let mut queue = VecDeque::new();
+    queue.push_back(root);
+    let mut sizes = vec![];
+    while queue.len() > 0 {
+        let temp = queue.pop_front().unwrap();
+        for v in temp.borrow().children.iter() {
+            queue.push_back(Rc::clone(&v));
+            sizes.push(v.borrow().size);
+        }
+    }
+    sizes.sort();
+    let ans = sizes.iter().filter(|x| **x >= expected).take(1).nth(0);
+    *ans.unwrap()
+}
+
+fn build_dir() -> Rc<RefCell<Folder>> {
     let input = super::utils::read("./src/input/day7.txt");
     let root = Rc::new(RefCell::new(Folder::new("/", None)));
     let mut current = Rc::clone(&root);
     let mut cmd = Command::Cd("/");
-
     for v in input.iter().skip(1) {
         match Command::new(v) {
             Some(c) => match c {
@@ -27,23 +62,7 @@ pub fn solve() -> usize {
             },
         }
     }
-    sum_dir_size(root)
-}
-
-fn sum_dir_size(root: Rc<RefCell<Folder>>) -> usize {
-    let mut queue = VecDeque::new();
-    queue.push_back(root);
-    let mut ans = 0;
-    while queue.len() > 0 {
-        let temp = queue.pop_front().unwrap();
-        if temp.borrow().size <= 100000 {
-            ans += temp.borrow().size;
-        }
-        for v in temp.borrow().children.iter() {
-            queue.push_back(Rc::clone(&v));
-        }
-    }
-    ans
+    root
 }
 
 #[derive(Debug)]
