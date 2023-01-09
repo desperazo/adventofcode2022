@@ -6,8 +6,7 @@ pub fn solve() -> usize {
     let mut queue = VecDeque::new();
     queue.push_back(root);
     let mut ans = 0;
-    while queue.len() > 0 {
-        let temp = queue.pop_front().unwrap();
+    while let Some(temp) = queue.pop_front() {
         if temp.borrow().size <= 100000 {
             ans += temp.borrow().size;
         }
@@ -25,8 +24,7 @@ pub fn solve_2() -> usize {
     let mut queue = VecDeque::new();
     queue.push_back(root);
     let mut sizes = vec![];
-    while queue.len() > 0 {
-        let temp = queue.pop_front().unwrap();
+    while let Some(temp) = queue.pop_front() {
         for v in temp.borrow().children.iter() {
             queue.push_back(Rc::clone(&v));
             sizes.push(v.borrow().size);
