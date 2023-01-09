@@ -46,3 +46,58 @@ pub fn solve() -> usize {
     }
     count
 }
+
+pub fn solve_2() -> usize {
+    let input = super::utils::read("./src/input/day8.txt");
+    let mut data = vec![];
+
+    for v in input.iter() {
+        let r: Vec<_> = v.chars().collect();
+        data.push(r);
+    }
+
+    let mut max_score = 0;
+    for x in 1..SQUARE_SIZE - 1 {
+        for y in 1..SQUARE_SIZE - 1 {
+            let (mut u_max, mut l_max, mut r_max, mut d_max) = (0, 0, 0, 0);
+            let (mut l, mut r, mut u, mut d) = (y, y, x, x);
+            while l > 0 {
+                l_max += 1;
+                if data[x][l - 1] >= data[x][y] {
+                    break;
+                }
+                l = l - 1;
+            }
+
+            while r < SQUARE_SIZE - 1 {
+                r_max += 1;
+                if data[x][r + 1] >= data[x][y] {
+                    break;
+                }
+                r = r + 1;
+            }
+
+            while u > 0 {
+                u_max += 1;
+                if data[u - 1][y] >= data[x][y] {
+                    break;
+                }
+                u = u - 1;
+            }
+
+            while d < SQUARE_SIZE - 1 {
+                d_max += 1;
+                if data[d + 1][y] >= data[x][y] {
+                    break;
+                }
+                d = d + 1;
+            }
+
+            let score = r_max * l_max * d_max * u_max;
+            if score > max_score {
+                max_score = score;
+            }
+        }
+    }
+    max_score
+}
