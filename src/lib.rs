@@ -52,5 +52,9 @@ pub fn solve_day7_2() -> usize {
     aoc::day7::solve_2()
 }
 
+pub fn solve_9() -> usize {
+    aoc::day9::solve()
+}
+
 #[cfg(test)]
 mod tests;
