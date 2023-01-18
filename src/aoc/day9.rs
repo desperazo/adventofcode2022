@@ -43,8 +43,7 @@ impl Knot {
         }
     }
 
-    fn move_t(&mut self, table: &mut Grid, m: &Move) -> Vec<Position> {
-        let track = vec![];
+    fn move_t(&mut self, table: &mut Grid, m: &Move) {
         match self.t.is_touch(&self.h) {
             false => match m {
                 Move::R(_) => self.t = self.h.touch_left(table, &self.t),
@@ -54,11 +53,10 @@ impl Knot {
             },
             true => (),
         }
-        track
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 struct Position {
     x: usize,
     y: usize,
