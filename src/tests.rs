@@ -64,3 +64,10 @@ fn day11_test() {
     println!("answer {}", result);
     assert_eq!(result, 110264);
 }
+
+#[test]
+fn day11_2test() {
+    let result = aoc::day11::solve_2();
+    println!("answer {}", result);
+    assert_eq!(result, 23612457316);
+}

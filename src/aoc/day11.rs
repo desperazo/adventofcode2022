@@ -1,6 +1,6 @@
 use std::collections::VecDeque;
 
-pub fn solve() -> usize {
+pub fn solve() -> u128 {
     let mut monkeys = new_monkies();
     for i in 0..20 {
         for j in 0..monkeys.len() {
@@ -19,6 +19,32 @@ pub fn solve() -> usize {
             }
         }
     }
+    top_inspector(monkeys)
+}
+
+pub fn solve_2() -> u128 {
+    let mut monkeys = new_monkies();
+    let common_diviser = 5 * 11 * 2 * 13 * 7 * 3 * 17 * 19;
+    for i in 0..10_000 {
+        for j in 0..monkeys.len() {
+            let mut store = vec![];
+            let mut m = monkeys.get_mut(j).unwrap();
+            while let Some(v) = m.items.pop_front() {
+                let worry = (m.operation)(v) % common_diviser;
+                let id = (m.test)(worry);
+                store.push((id, worry));
+                m.inspect_count += 1;
+            }
+            for (id, v) in store.iter() {
+                m = monkeys.get_mut(*id).unwrap();
+                m.items.push_back(*v);
+            }
+        }
+    }
+    top_inspector(monkeys)
+}
+
+fn top_inspector(mut monkeys: Vec<Monkey>) -> u128 {
     monkeys.sort_by(|a, b| a.inspect_count.cmp(&b.inspect_count));
     let top: Vec<_> = monkeys.iter().rev().take(2).collect();
     top[0].inspect_count * top[1].inspect_count
@@ -105,5 +131,5 @@ struct Monkey {
     items: VecDeque<usize>,
     operation: fn(usize) -> usize,
     test: fn(usize) -> usize,
-    inspect_count: usize,
+    inspect_count: u128,
 }
