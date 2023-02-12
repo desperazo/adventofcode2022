@@ -26,6 +26,43 @@ pub fn solve() -> usize {
     panic!("route not found");
 }
 
+pub fn solve_2() -> usize {
+    let input = super::utils::read("./src/input/day12.txt");
+    let mut data = vec![];
+
+    for v in input.iter() {
+        data.push(v.chars().collect::<Vec<_>>());
+    }
+
+    let mut ans = usize::MAX;
+    for (y, vy) in data.iter().enumerate() {
+        for (x, vx) in vy.iter().enumerate() {
+            if *vx != 'a' {
+                continue;
+            }
+            let start = Node::new('S', x, y, 0);
+            let mut queue = VecDeque::<Node>::new();
+            queue.push_back(start);
+            let mut visited = HashSet::with_capacity(7000);
+            while let Some(node) = queue.pop_front() {
+                if node.x == 138 && node.y == 20 {
+                    if node.depth + 1 < ans {
+                        ans = node.depth + 1;
+                    }
+                    break;
+                }
+                let mut nb = node.get_neighbors(&data);
+                for n in nb.iter_mut() {
+                    if visited.insert((n.x, n.y)) {
+                        queue.push_back(*n);
+                    }
+                }
+            }
+        }
+    }
+    ans
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 struct Node {
     x: usize,
