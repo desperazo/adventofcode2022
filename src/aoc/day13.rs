@@ -1,4 +1,4 @@
-use std::cmp;
+use std::cmp::Ordering;
 
 pub fn solve() -> usize {
     let input = super::utils::read("./src/input/day13.txt");
@@ -9,10 +9,33 @@ pub fn solve() -> usize {
         score += 1;
         let left = Package::new(input[count].clone());
         let right = Package::new(input[count + 1].clone());
-        if compare(left, right) == -1 {
+        if compare(left, right).is_lt() {
             ans += score;
         }
         count += 3;
+    }
+    ans
+}
+
+pub fn solve_2() -> usize {
+    let tmp = super::utils::read("./src/input/day13.txt");
+    let mut input: Vec<_> = tmp
+        .iter()
+        .filter(|x| x.len() > 0)
+        .map(|x| x.to_string())
+        .collect();
+    input.push("[[2]]".to_string());
+    input.push("[[6]]".to_string());
+    input.sort_by(|a, b| compare(Package::new(a.to_string()), Package::new(b.to_string())));
+    let mut ans = 0;
+    for i in 0..input.len() {
+        if input[i] == "[[2]]" {
+            ans = i + 1;
+        }
+        if input[i] == "[[6]]" {
+            ans = ans * (i + 1);
+            break;
+        }
     }
     ans
 }
@@ -27,37 +50,29 @@ struct Package {
     text: String,
 }
 
-fn compare(mut left: Package, mut right: Package) -> i32 {
+fn compare(mut left: Package, mut right: Package) -> Ordering {
     loop {
         let l = left.next();
         let r = right.next();
-        let cmp = match (l, r) {
-            (None, None) => return 0,
-            (None, Some(_)) => return -1,
-            (Some(_), None) => return 1,
+        let ord = match (l, r) {
+            (None, None) => return Ordering::Equal,
+            (None, Some(_)) => return Ordering::Less,
+            (Some(_), None) => return Ordering::Greater,
             (Some(lv), Some(rv)) => match (lv, rv) {
-                (Signal::Int(lv1), Signal::Int(rv1)) => {
-                    if lv1 < rv1 {
-                        return -1;
-                    }
-                    if lv1 > rv1 {
-                        return 1;
-                    }
-                    0
-                }
+                (Signal::Int(lv1), Signal::Int(rv1)) => lv1.cmp(&rv1),
                 (Signal::Int(lv1), Signal::Mix(rv1)) => {
-                    compare(Package::new_int(lv1), Package::new(rv1))
+                    compare(Package::from_int(lv1), Package::new(rv1))
                 }
                 (Signal::Mix(lv1), Signal::Int(rv1)) => {
-                    compare(Package::new(lv1), Package::new_int(rv1))
+                    compare(Package::new(lv1), Package::from_int(rv1))
                 }
                 (Signal::Mix(lv1), Signal::Mix(rv1)) => {
                     compare(Package::new(lv1), Package::new(rv1))
                 }
             },
         };
-        if cmp != 0 {
-            return cmp;
+        if ord != Ordering::Equal {
+            return ord;
         }
     }
 }
@@ -66,7 +81,7 @@ impl Package {
     fn new(text: String) -> Self {
         Package { curr: 0, text }
     }
-    fn new_int(val: i32) -> Self {
+    fn from_int(val: i32) -> Self {
         let mut text = "[".to_string();
         text.push_str(&val.to_string());
         text.push_str("]");
@@ -78,20 +93,16 @@ impl Iterator for Package {
     type Item = Signal;
 
     fn next(&mut self) -> Option<Self::Item> {
-        let mut bracket = 0;
-        let chrs: Vec<_> = self.text.chars().collect();
-        let mut txt = String::new();
         self.curr += 1;
         if self.curr >= self.text.len() {
             return None;
         }
+        let mut bracket = 0;
+        let chrs: Vec<_> = self.text.chars().collect();
+        let mut txt = String::new();
         while self.curr < self.text.len() - 1 {
             let ch = chrs[self.curr];
             match ch {
-                ',' if txt.len() == 0 => {
-                    self.curr += 1;
-                    continue;
-                }
                 ',' if bracket == 0 => break,
                 '[' => {
                     bracket += 1;
@@ -111,10 +122,7 @@ impl Iterator for Package {
         match txt.chars().nth(0) {
             None => Some(Signal::Int(-1)),
             Some('[') => Some(Signal::Mix(txt)),
-            _ => Some(Signal::Int(match txt.parse() {
-                Ok(v) => v,
-                Err(_) => -1,
-            })),
+            _ => Some(Signal::Int(txt.parse().unwrap())),
         }
     }
 }
