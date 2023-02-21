@@ -24,8 +24,7 @@ pub fn solve_2() -> usize {
         .filter(|x| x.len() > 0)
         .map(|x| x.to_string())
         .collect();
-    input.push("[[2]]".to_string());
-    input.push("[[6]]".to_string());
+    input.append(&mut vec!["[[2]]".to_string(), "[[6]]".to_string()]);
     input.sort_by(|a, b| compare(Package::new(a.to_string()), Package::new(b.to_string())));
     let mut ans = 0;
     for i in 0..input.len() {
@@ -71,7 +70,7 @@ fn compare(mut left: Package, mut right: Package) -> Ordering {
                 }
             },
         };
-        if ord != Ordering::Equal {
+        if ord.is_ne() {
             return ord;
         }
     }
@@ -82,9 +81,7 @@ impl Package {
         Package { curr: 0, text }
     }
     fn from_int(val: i32) -> Self {
-        let mut text = "[".to_string();
-        text.push_str(&val.to_string());
-        text.push_str("]");
+        let text = String::from_iter(vec!["[", &val.to_string(), "]"]);
         Package { curr: 0, text }
     }
 }
