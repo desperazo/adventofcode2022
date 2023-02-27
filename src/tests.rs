@@ -113,3 +113,10 @@ fn day14_2_test() {
     println!("answer {}", result);
     assert_eq!(result, 32041);
 }
+
+#[test]
+fn day15_test() {
+    let result = aoc::day15::solve();
+    println!("answer {}", result);
+    assert_eq!(result, 5142231);
+}
