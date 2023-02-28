@@ -43,6 +43,44 @@ pub fn solve() -> i32 {
     count
 }
 
+pub fn solve_2() -> i64 {
+    let input = super::utils::read("./src/input/day15.txt");
+    let reg = Regex::new(r"^Sensor at x=(?P<sx>-?\d+), y=(?P<sy>-?\d+): closest beacon is at x=(?P<bx>-?\d+), y=(?P<by>-?\d+)$").unwrap();
+    let mut b_points = vec![];
+    for v in input.iter() {
+        if let Some(cap) = reg.captures(v) {
+            let pos = Position::new(
+                cap["sx"].parse().unwrap(),
+                cap["sy"].parse().unwrap(),
+                cap["bx"].parse().unwrap(),
+                cap["by"].parse().unwrap(),
+            );
+            b_points.push(pos);
+        }
+    }
+    for i in 0..=4000000 {
+        let mut rnk = vec![];
+        for v in b_points.iter() {
+            if let Some(c) = v.collapse(i) {
+                rnk.push(c);
+            }
+        }
+        if rnk.len() == 0 {
+            continue;
+        }
+        rnk.sort_by(|a, b| a.0.cmp(&b.0));
+        let mut right = rnk[0].1;
+        for (l, r) in rnk.iter().skip(1) {
+            if *l > right {
+                return 4000000 * (*l as i64 - 1) + i as i64;
+            } else if *r > right {
+                right = *r;
+            }
+        }
+    }
+    0
+}
+
 #[derive(Debug)]
 struct Position {
     sx: i32,
