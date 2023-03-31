@@ -144,7 +144,14 @@ fn day16_2_test() {
 
 #[test]
 fn day17_test() {
-    let result = aoc::day17::solve();
+    let result = aoc::day17::solve(2022);
     println!("answer {}", result);
     assert_eq!(result, 3153);
+}
+
+#[test]
+fn day17_2_test() {
+    let result = aoc::day17::solve(1000000000000);
+    println!("answer {}", result);
+    assert_eq!(result, 1553665689155);
 }
