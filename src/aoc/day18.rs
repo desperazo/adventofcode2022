@@ -25,25 +25,22 @@ impl ThreeDGrid {
     }
 
     fn calculate(&mut self) -> i32 {
-        for x in 0..GRID_ZIZE {
-            for y in 0..GRID_ZIZE {
-                for z in 0..GRID_ZIZE {
-                    if z > 0
-                        && self.pos[x][y][z].open_sides != i32::MIN
+        for x in 1..GRID_ZIZE {
+            for y in 1..GRID_ZIZE {
+                for z in 1..GRID_ZIZE {
+                    if self.pos[x][y][z].open_sides != i32::MIN
                         && self.pos[x][y][z - 1].open_sides != i32::MIN
                     {
                         self.pos[x][y][z].open_sides -= 1;
                         self.pos[x][y][z - 1].open_sides -= 1;
                     }
-                    if x > 0
-                        && self.pos[x][y][z].open_sides != i32::MIN
+                    if self.pos[x][y][z].open_sides != i32::MIN
                         && self.pos[x - 1][y][z].open_sides != i32::MIN
                     {
                         self.pos[x][y][z].open_sides -= 1;
                         self.pos[x - 1][y][z].open_sides -= 1;
                     }
-                    if y > 0
-                        && self.pos[x][y][z].open_sides != i32::MIN
+                    if self.pos[x][y][z].open_sides != i32::MIN
                         && self.pos[x][y - 1][z].open_sides != i32::MIN
                     {
                         self.pos[x][y][z].open_sides -= 1;
