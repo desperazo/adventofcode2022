@@ -169,3 +169,10 @@ fn day18_2_test() {
     println!("answer {}", result);
     assert_eq!(result, 2582);
 }
+
+#[test]
+fn day19_test() {
+    let result = aoc::day19::solve();
+    println!("answer {}", result);
+    assert_eq!(result, 4628);
+}
