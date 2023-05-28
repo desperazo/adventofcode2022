@@ -1,29 +1,42 @@
-use std::collections::{HashMap, VecDeque};
+use std::{
+    collections::{hash_map::DefaultHasher, BTreeMap, BinaryHeap, HashSet},
+    hash::{Hash, Hasher},
+};
 
 use regex::Regex;
-const MAX_MINUTES: u32 = 24;
-
 pub fn solve() -> u32 {
-    let blueprints = parse();
-    blueprints.iter().map(|b| b.drill()).sum()
+    let mut blueprints = parse();
+    blueprints.iter_mut().map(|b| b.drill(24) * b.id).sum()
+}
+
+pub fn solve_2() -> u32 {
+    let mut blueprints = parse();
+    blueprints
+        .iter_mut()
+        .take(3)
+        .map(|b| b.drill(32))
+        .reduce(|acc, e| acc * e)
+        .unwrap()
 }
 
 struct BluePrint {
     id: u32,
-    costs: HashMap<Mine, HashMap<Mine, u32>>,
+    max_geode: u32,
+    costs: BTreeMap<Mine, BTreeMap<Mine, u32>>,
 }
 
-#[derive(Debug, Eq, PartialEq, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
 struct Plan {
     robots: [u32; 4],
     mines: [u32; 4],
     minutes: u32,
+    max_minutes: u32,
 }
 
 impl Plan {
-    fn build(&self, robot: &Mine, costs: &HashMap<Mine, HashMap<Mine, u32>>) -> Option<Plan> {
+    fn build(&self, robot: &Mine, costs: &BTreeMap<Mine, BTreeMap<Mine, u32>>) -> Option<Plan> {
         let cost = costs.get(robot).unwrap();
-        let wait_time = cost
+        let take_minutes = cost
             .iter()
             .map(|(m, c)| {
                 let robot_count = self.robots[*m as usize];
@@ -36,17 +49,17 @@ impl Plan {
             })
             .max()
             .unwrap();
-        let new_minutes = self.minutes + wait_time + 1;
-        if new_minutes > MAX_MINUTES {
+        let new_minutes = self.minutes + take_minutes + 1;
+        if new_minutes >= self.max_minutes {
             return None;
         }
 
         let mut new_mines = self.mines;
         new_mines.iter_mut().enumerate().for_each(|(m, n)| {
             if let Some(c) = cost.get(&m.try_into().unwrap()) {
-                *n = *n + self.robots[m] * (wait_time + 1) - c;
+                *n = *n + self.robots[m] * (take_minutes + 1) - c;
             } else {
-                *n += self.robots[m] * (wait_time + 1);
+                *n += self.robots[m] * (take_minutes + 1);
             }
         });
         let mut new_robots = self.robots;
@@ -55,46 +68,84 @@ impl Plan {
             robots: new_robots,
             mines: new_mines,
             minutes: new_minutes,
+            max_minutes: self.max_minutes,
         })
     }
 
-    fn havest(&mut self) {
-        let minutes = MAX_MINUTES - self.minutes;
+    fn havest(&mut self) -> u32 {
+        let left = self.max_minutes - self.minutes;
         self.robots
             .iter()
             .enumerate()
-            .for_each(|(i, v)| self.mines[i] += *v * minutes);
-        self.minutes = MAX_MINUTES;
+            .for_each(|(i, v)| self.mines[i] += *v * left);
+        self.minutes = self.max_minutes;
+        self.mines[Mine::Geode as usize]
+    }
+
+    fn hash_value(&self) -> u64 {
+        let mut hasher = DefaultHasher::new();
+        self.hash(&mut hasher);
+        hasher.finish()
+    }
+
+    fn max_future_geode(&self) -> u32 {
+        let remain_times = self.max_minutes - self.minutes;
+        let max_robot_geode = self.robots[Mine::Geode as usize] + remain_times;
+        self.mines[Mine::Geode as usize] + (remain_times * max_robot_geode)
+    }
+}
+
+impl Ord for Plan {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        self.max_future_geode().cmp(&other.max_future_geode())
+    }
+}
+
+impl PartialOrd for Plan {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        Some(self.cmp(other))
     }
 }
 
 impl BluePrint {
-    fn drill(&self) -> u32 {
-        let mut plans = VecDeque::new();
-        plans.push_back(Plan {
+    fn build_plans(&mut self, plan: &mut Plan) -> Vec<Plan> {
+        let mut res = vec![];
+        if plan.minutes >= plan.max_minutes {
+            return res;
+        }
+        for m in Mine::iterator() {
+            if let Some(t) = plan.build(&m, &self.costs) {
+                if t.max_future_geode() >= self.max_geode {
+                    res.push(t);
+                }
+            }
+        }
+        self.max_geode = self.max_geode.max(plan.havest());
+        res
+    }
+
+    fn drill(&mut self, max_minutes: u32) -> u32 {
+        let mut queue = BinaryHeap::new();
+        queue.push(Plan {
             minutes: 0,
             mines: [0, 0, 0, 0],
             robots: [1, 0, 0, 0],
+            max_minutes,
         });
-        let mut max_geode = 0;
-
-        while let Some(mut p) = plans.pop_front() {
-            for m in Mine::iterator() {
-                if let Some(t) = p.build(&m, &self.costs) {
-                    max_geode = max_geode.max(t.mines[Mine::Geode as usize]);
-                    if t.minutes < MAX_MINUTES {
-                        plans.push_back(t);
-                    }
-                }
+        let mut seen = HashSet::new();
+        while let Some(mut p) = queue.pop() {
+            let key = p.hash_value();
+            if !seen.insert(key) || p.max_future_geode() < self.max_geode {
+                continue;
             }
-            p.havest();
-            max_geode = max_geode.max(p.mines[Mine::Geode as usize]);
+            let res = self.build_plans(&mut p);
+            queue.extend(res);
         }
-        max_geode * self.id
+        self.max_geode
     }
 }
 
-#[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, PartialOrd, Ord)]
+#[derive(Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
 enum Mine {
     Ore = 0,
     Clay = 1,
@@ -130,25 +181,25 @@ fn parse() -> Vec<BluePrint> {
     let mut blueprints = vec![];
     for v in input.iter() {
         if let Some(cap) = reg.captures(v) {
-            let costs = HashMap::from([
+            let costs = BTreeMap::from([
                 (
                     Mine::Ore,
-                    HashMap::from([(Mine::Ore, cap.get(2).unwrap().as_str().parse().unwrap())]),
+                    BTreeMap::from([(Mine::Ore, cap.get(2).unwrap().as_str().parse().unwrap())]),
                 ),
                 (
                     Mine::Clay,
-                    HashMap::from([(Mine::Ore, cap.get(3).unwrap().as_str().parse().unwrap())]),
+                    BTreeMap::from([(Mine::Ore, cap.get(3).unwrap().as_str().parse().unwrap())]),
                 ),
                 (
                     Mine::Obsidian,
-                    HashMap::from([
+                    BTreeMap::from([
                         (Mine::Ore, cap.get(4).unwrap().as_str().parse().unwrap()),
                         (Mine::Clay, cap.get(5).unwrap().as_str().parse().unwrap()),
                     ]),
                 ),
                 (
                     Mine::Geode,
-                    HashMap::from([
+                    BTreeMap::from([
                         (Mine::Ore, cap.get(6).unwrap().as_str().parse().unwrap()),
                         (
                             Mine::Obsidian,
@@ -159,6 +210,7 @@ fn parse() -> Vec<BluePrint> {
             ]);
             let bp = BluePrint {
                 id: cap.get(1).unwrap().as_str().parse().unwrap(),
+                max_geode: 0,
                 costs,
             };
             blueprints.push(bp);
