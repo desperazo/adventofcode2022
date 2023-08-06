@@ -20,4 +20,5 @@ pub mod day7;
 pub mod day8;
 pub mod day9;
 pub mod day92;
+pub mod day22;
 pub mod utils;
