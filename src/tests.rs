@@ -216,5 +216,12 @@ fn day21_2_test() {
 fn day22_test() {
     let result = aoc::day22::solve();
     println!("answer {}", result);
-    //assert_eq!(result, 276156919469632);
+    assert_eq!(result, 162186);
+}
+
+#[test]
+fn day22_2_test() {
+    let result = aoc::day22::solve2();
+    println!("answer {}", result);
+    assert_eq!(result, 55267);
 }
