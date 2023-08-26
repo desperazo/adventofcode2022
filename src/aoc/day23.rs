@@ -4,9 +4,17 @@ pub fn solve() -> usize {
     let mut map = parse();
     for i in 0..10 {
         map.distribute();
-        println!("------{i}------");
     }
     map.score()
+}
+
+pub fn solve2() -> usize {
+    let mut map = parse();
+    let mut ans = 1;
+    while map.distribute() {
+        ans += 1;
+    }
+    ans
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash)]
@@ -82,9 +90,9 @@ impl Map {
         }
     }
 
-    fn distribute(&mut self) {
+    fn distribute(&mut self) -> bool {
+        self.purposes.clear();
         self.purposes();
-        self.print();
         for (pro, v) in self.purposes.iter() {
             if v.len() == 1 {
                 let cur = v.get(0).unwrap();
@@ -92,30 +100,8 @@ impl Map {
                 self.elfs.insert(*pro);
             }
         }
-        self.purposes.clear();
         self.compass.rotate();
-        self.print();
-    }
-
-    fn print(&self) {
-        for y in 0..13 {
-            for x in 0..15 {
-                let elf = Elf { x, y };
-                let c = match self.purposes.get(&elf) {
-                    Some(v) => v.len(),
-                    None => 0,
-                };
-                match self.elfs.contains(&elf) {
-                    true => print!("#"),
-                    false => match c {
-                        0 => print!("."),
-                        _ => print!("{c}"),
-                    },
-                }
-            }
-            println!();
-        }
-        println!();
+        !self.purposes.is_empty()
     }
 }
 
