@@ -2,6 +2,7 @@ use std::collections::{HashSet, VecDeque};
 
 const MAX_ROW: usize = 22;
 const MAX_COL: usize = 152;
+
 pub fn solve() -> usize {
     let (mut map, mut bizs) = parse();
     let mut best_steps = 500;
@@ -9,6 +10,7 @@ pub fn solve() -> usize {
         x: 1,
         y: 0,
         steps: 0,
+        round: 0,
     }]);
 
     let mut visited = HashSet::new();
@@ -36,12 +38,53 @@ pub fn solve() -> usize {
     best_steps
 }
 
+pub fn solve2() -> usize {
+    let (mut map, mut bizs) = parse();
+    let mut best_steps = 1500;
+    let mut queue = VecDeque::from_iter(vec![Elf {
+        x: 1,
+        y: 0,
+        steps: 0,
+        round: 0,
+    }]);
+
+    let mut visited = HashSet::new();
+    while !queue.is_empty() {
+        bizs.iter_mut().for_each(|b| b.flow(&mut map));
+
+        let mut moved_elfs = Vec::new();
+        while let Some(mut elf) = queue.pop_back() {
+            if elf.x == MAX_COL - 2 && elf.y == MAX_ROW - 1 && elf.round == 0 {
+                elf.round += 1;
+            }
+            if elf.x == 1 && elf.y == 0 && elf.round == 1 {
+                elf.round += 1;
+            }
+            if elf.x == MAX_COL - 2 && elf.y == MAX_ROW - 1 && elf.round == 2 {
+                best_steps = best_steps.min(elf.steps);
+                continue;
+            }
+            if elf.steps >= best_steps {
+                continue;
+            }
+            elf.walk(&map).iter().for_each(|e| {
+                if e.steps < best_steps && visited.insert(*e) {
+                    moved_elfs.push(*e);
+                }
+            });
+        }
+        queue.extend(moved_elfs);
+    }
+    best_steps
+}
+
 type Map = [[usize; MAX_COL]; MAX_ROW];
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
 struct Elf {
     x: usize,
     y: usize,
     steps: usize,
+    round: usize,
 }
 
 impl Elf {
@@ -56,6 +99,7 @@ impl Elf {
                         x,
                         y,
                         steps: self.steps,
+                        round: self.round,
                     }),
                     _ => None,
                 }
@@ -66,6 +110,7 @@ impl Elf {
                 x: self.x,
                 y: self.y,
                 steps: self.steps,
+                round: self.round,
             })
         }
         elfs
@@ -155,36 +200,4 @@ fn parse() -> (Map, Vec<Blizzard>) {
         }
     }
     (map, bilizzards)
-}
-
-fn print(map: &Map, bils: &[Blizzard], elf: &Elf, isprint: bool) {
-    if !isprint {
-        return;
-    }
-    for y in 0..MAX_ROW {
-        for x in 0..MAX_COL {
-            if elf.x == x && elf.y == y {
-                print!("E");
-                continue;
-            }
-            match map[y][x] {
-                0 => print!("."),
-                1 => {
-                    let biz = bils.iter().find(|b| b.x == x && b.y == y).unwrap();
-                    match biz.dir {
-                        Direction::Up => print!("^"),
-                        Direction::Down => print!("v"),
-                        Direction::Left => print!("<"),
-                        Direction::Right => print!(">"),
-                    }
-                }
-                v if v == usize::MAX => print!("#"),
-                v if v > 1 => print!("M"),
-                _ => (),
-            }
-        }
-        println!();
-    }
-    println!();
-    println!();
 }
