@@ -253,3 +253,10 @@ fn day24_2_test() {
     println!("answer {}", result);
     assert_eq!(result, 960);
 }
+
+#[test]
+fn day25_test() {
+    let result = aoc::day25::solve();
+    println!("answer {}", result);
+    assert_eq!(result, "2-02===-21---2002==0");
+}
